@@ -1,20 +1,45 @@
 import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 
-bh_data = pd.read_excel('files/lab 2/practice_lab_2.xlsx')
-bh_arr = bh_data.values
-x,y = bh_arr[:,:-1], bh_arr[:,-1]
-x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,random_state=221,shuffle=False)
+def zadanie2_1(data):
+    corr_of_data = data.corr()
+    #print(corr_of_data)
+    dependent_var = 'MedianowaCena'
+    independent_var = [col for col in data.columns if col != dependent_var]
+    num_plots = len(independent_var)
+    num_cols = 3
+    num_rows = (num_plots + num_cols - 1) // num_cols
+    fig, ax = plt.subplots(num_rows, num_cols, figsize=(10, 5*num_rows),squeeze=False,sharex='col',sharey="row",gridspec_kw={'hspace':0.5,'wspace':0.3})
+    for i, var in enumerate(independent_var):
+        row = i // num_cols
+        col = i % num_cols
+        ax[row, col].scatter(data[var], data[dependent_var], alpha=0.5)
+        ax[row, col].set_xlabel(var)
+        ax[row, col].set_ylabel(dependent_var)
+        ax[row, col].grid(True)
+    
+    if num_plots % num_cols != 0:
+        for j in range(num_cols - num_plots % num_cols):
+            fig.delaxes(ax[num_rows - 1, num_plots % num_cols + j])
+    
+    plt.autoscale()
+    plt.show()
 
-linReg = LinearRegression()
-linReg.fit(x_train,y_train)
-y_pred = linReg.predict(x_test)
-minval = min(y_test.min(),y_pred.max())
-maxval = max(y_test.max(),y_pred.min())
-plt.scatter(y_test,y_pred)
-plt.plot([minval,maxval],[minval,maxval])
-plt.xlabel('y_test')
-plt.xlabel('y_pred')
-plt.show()
+if __name__ == "__main__":
+    bh_data = pd.read_excel('files/lab 2/practice_lab_2.xlsx')
+    zadanie2_1(bh_data)
+    # bh_arr = bh_data.values
+    # x,y = bh_arr[:,:-1], bh_arr[:,-1]
+    # x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,random_state=221,shuffle=False)
+    # linReg = LinearRegression()
+    # linReg.fit(x_train,y_train)
+    # y_pred = linReg.predict(x_test)
+    # mse = mean_squared_error(y_test,y_pred)
+    # mae = mean_absolute_error(y_test,y_pred)
+    # mape = mean_absolute_percentage_error(y_test,y_pred)
+    # plt.boxplot(y_train)
+    # plt.show()
