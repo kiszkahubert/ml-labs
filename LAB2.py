@@ -1,13 +1,8 @@
-import numpy as np
-from matplotlib import pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
-x = np.arange(-3,3,0.1).reshape((-1,1))
-y = np.tanh(x) + np.random.randn(*x.shape)*0.2
-ypred = LinearRegression().fit(x,y).predict(x)
-plt.scatter(x,y)
-plt.xlabel('x')
-plt.ylabel('y')
-plt.plot(x,ypred)
-plt.legend(['aproximate','aproximate distorted'])
-plt.show()
+bh_data = pd.read_excel('/files/lab2/practice_lab_2.xlsx')
+bh_arr = bh_data.values
+x,y = bh_arr[:,:-1], bh_arr[:,-1]
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,random_state=221,shuffle=False)
