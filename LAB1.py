@@ -35,13 +35,17 @@ def zadanie1_2():
     idx = np.where(cols)[0]
     print([nazwy_kolumn[i] for i in idx])
 
-
 def fourth_graph_helper(x):
     if x <= 0:
         return 0
     else:
         return x
 
+def fifth_graph_helper(x):
+    if x <= 0:
+        return np.exp(x) - 1
+    else:
+        return x
 
 def zadanie1_3():
     x = np.arange(-5,5,0.01)
@@ -66,10 +70,29 @@ def zadanie1_3():
     plt.plot(x,y)
     plt.grid(True)
     plt.show()
+    #5th graph
+    y = [fifth_graph_helper(i) for i in x]
+    plt.figure(figsize=(8,6))
+    plt.plot(x,y)
+    plt.grid(True)
+    plt.show()
+
+def zadanie1_4(data):
+    corr_tab = data.corr()
+    vals = np.array(corr_tab.values)
+    fig, ax = plt.subplots(len(vals),len(vals),figsize = (10,10))
+    for i in range(len(vals)):
+        for j in range(len(vals)):
+            if i != j:
+                ax[i, j].scatter(vals[:, i], vals[:, j])
+
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
     data = pd.read_excel("files/lab 1/practice_lab_1.xlsx")
     nazwy_kolumn = list(data.columns)
     wartosci = np.array(data.values)
     np.set_printoptions(suppress=True,precision=2)
-    zadanie1_3()
+    zadanie1_4(data)
