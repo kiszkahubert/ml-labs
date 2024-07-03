@@ -29,17 +29,27 @@ def zadanie2_1(data):
     plt.autoscale()
     plt.show()
 
+def zadanie2_2(data, repeat):
+    bh_arr = data.values
+    x,y = bh_arr[:,:-1], bh_arr[:,-1]
+    avg_error = 0
+    for i in range(repeat):
+        x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,shuffle=False)
+        linReg = LinearRegression()  
+        linReg.fit(x_train,y_train)
+        y_pred = linReg.predict(x_test)
+        mse = mean_squared_error(y_test,y_pred)
+        mae = mean_absolute_error(y_test,y_pred)
+        mape = mean_absolute_percentage_error(y_test,y_pred)
+        avg_error += mape
+    
+    return avg_error/repeat
+
+def zadanie2_3():
+
+
+
+
 if __name__ == "__main__":
     bh_data = pd.read_excel('files/lab 2/practice_lab_2.xlsx')
-    zadanie2_1(bh_data)
-    # bh_arr = bh_data.values
-    # x,y = bh_arr[:,:-1], bh_arr[:,-1]
-    # x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,random_state=221,shuffle=False)
-    # linReg = LinearRegression()
-    # linReg.fit(x_train,y_train)
-    # y_pred = linReg.predict(x_test)
-    # mse = mean_squared_error(y_test,y_pred)
-    # mae = mean_absolute_error(y_test,y_pred)
-    # mape = mean_absolute_percentage_error(y_test,y_pred)
-    # plt.boxplot(y_train)
-    # plt.show()
+    print(zadanie2_2(bh_data,3))
