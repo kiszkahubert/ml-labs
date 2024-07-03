@@ -2,10 +2,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-data = pd.read_excel("files/lab 1/practice_lab_1.xlsx")
-nazwy_kolumn = list(data.columns)
-wartosci = np.array(data.values)
-np.set_printoptions(suppress=True,precision=2)
 
 def zadanie1_2():
     #1.2.1
@@ -40,4 +36,40 @@ def zadanie1_2():
     print([nazwy_kolumn[i] for i in idx])
 
 
-zadanie1_2()
+def fourth_graph_helper(x):
+    if x <= 0:
+        return 0
+    else:
+        return x
+
+
+def zadanie1_3():
+    x = np.arange(-5,5,0.01)
+    #1st graph
+    y = np.tanh(x)
+    plt.figure(figsize=(8,6))
+    plt.plot(x,y)
+    plt.grid(True)
+    #2nd graph
+    y = (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+    plt.figure(figsize=(8,6))
+    plt.plot(x,y)
+    plt.grid(True)
+    #3rd graph
+    y = 1/(1+np.exp(-x))
+    plt.figure(figsize=(8,6))
+    plt.plot(x,y)
+    plt.grid(True)
+    #4th graph
+    y = [fourth_graph_helper(i) for i in x]
+    plt.figure(figsize=(8,6))
+    plt.plot(x,y)
+    plt.grid(True)
+    plt.show()
+
+if __name__ == "__main__":
+    data = pd.read_excel("files/lab 1/practice_lab_1.xlsx")
+    nazwy_kolumn = list(data.columns)
+    wartosci = np.array(data.values)
+    np.set_printoptions(suppress=True,precision=2)
+    zadanie1_3()
