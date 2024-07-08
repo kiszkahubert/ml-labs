@@ -4,6 +4,8 @@ import numpy as np
 from scipy.io import wavfile
 from scipy.fft import fft
 from matplotlib import pyplot as plt
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -51,8 +53,8 @@ def zadanie4_2():
     conf_matrix_dt = np.zeros((2,2))
     for _ in range(30):
         x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2)
-        scaler = StandardScaler()
-        x_train = scaler.fit_transform(x_train)
+        scaler = StandardScaler() #sluzy do przeksztalcania danych tak aby mialy srednia 0 i odchylenie standardowe 1
+        x_train = scaler.fit_transform(x_train) 
         x_test = scaler.transform(x_test)
 
         knn = KNeighborsClassifier(n_neighbors=1)
@@ -79,6 +81,35 @@ def zadanie4_2():
     print(conf_matrix_svm)
     print("Wyniki Decision Tree:")
     print(conf_matrix_dt)
+
+def zadanie4_3():
+    #TODO nie ma tego pliku nigdzie takze nie zrobie tego
+    pass
+
+#zadanie 4.4
+class featuresCountBasedOnVariation(BaseEstimator, TransformerMixin):
+    def __init__ (self,explained_variance_ratio=0.95):
+        self.explained_variance_ratio = explained_variance_ratio
+        self.pca = None
+        self.n_components = None
+    
+    def fit(self, x, y=None):
+        self.pca = PCA()
+        self.pca.fit(x)
+        cumulative_variance = np.cumsum(self.pca.explained_variance_ratio_)
+        self.n_components = np.argmax(cumulative_variance >= self.explained_variance_ratio) + 1
+        self.pca = PCA(n_components=self.n_components)
+        self.pca.fit(x)
+        return self
+    
+    def transform(self,x):
+        return self.pca.transform(x)
+    
+    def fit_transform(self,x,y=None):
+        self.fit(x,y)
+        return self.transform(x)
+
+
 
 
 if __name__ == "__main__":
