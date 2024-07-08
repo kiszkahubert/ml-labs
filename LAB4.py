@@ -14,7 +14,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 
-
 def zadanie4_1(path):
     fs, audio_data = wavfile.read(path,mmap=True)
     if audio_data.ndim > 1:
@@ -109,8 +108,31 @@ class featuresCountBasedOnVariation(BaseEstimator, TransformerMixin):
         self.fit(x,y)
         return self.transform(x)
 
-
-
+#zadanie 4.5
+class removeStandOuts(BaseEstimator,TransformerMixin):
+    def __init__ (self,explained_variance_ratio=0.95):
+        self.explained_variance_ratio = explained_variance_ratio
+        self.pca = None
+        self.n_components = None
+    
+    def fit(self,x,y=None):
+        self.feature_means_ = np.mean(x, axis=0)
+        return self
+    
+    def transform(self, x):
+        x_transformed = np.copy(x)
+        for i in range(x.shape[1]):
+            feature_mean = self.feature_means_[i]
+            feature_std = np.std(x[:,i])
+            threshold = 3 * feature_std
+            outliers = np.abs(x[:,i]-feature_mean) > threshold
+            x_transformed[outliers,i] = feature_mean
+        
+        return x_transformed
+    
+    def fit_transform(self,x,y=None):
+        self.fit(x,y)
+        return self.transform(x)
 
 if __name__ == "__main__":
     zadanie4_2()
