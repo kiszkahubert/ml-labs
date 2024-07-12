@@ -5,6 +5,8 @@ from keras.optimizers import Adam
 from keras.datasets import mnist, cifar10
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
+import tensorflow as tf
+
 
 class zadanie7_2_3:
     def exec(self):
@@ -61,6 +63,7 @@ class zadanie7_2_3:
         return np.mean(accuracies)
 
 class zadanie7_4:
+    @staticmethod
     def build_model(num_layers, X_train, class_cnt):
         filter_cnt = 32
         learning_rate = 0.0001
@@ -93,16 +96,13 @@ class zadanie7_4:
             X_train_cv, X_test_cv = X_train[train_index], X_train[test_index]
             y_train_cv, y_test_cv = y_train[train_index], y_train[test_index]
             model = self.build_model(num_layers,X_train,class_cnt)
-            model.fit(x=X_train_cv,y=y_train_cv,epochs=10,batch_size=32,verbose=2)
+            model.fit(x=X_train_cv,y=y_train_cv,epochs=20,batch_size=32,verbose=2)
             accuracy = model.evaluate(X_test_cv,y_test_cv,verbose=0)
             accuracies.append(accuracy)
 
         return np.mean(accuracies)
     
     def get_optimal_layers_count(self,X_train,X_test,y_train,y_test):
-        
-        X_train = np.expand_dims(X_train,axis=-1)
-        X_test = np.expand_dims(X_test,axis=-1)
         num_layers_list = [1,2,3,4]
         results = {}
         for num_layers in num_layers_list:
@@ -115,7 +115,7 @@ class zadanie7_4:
         (X_train,y_train), (X_test,y_test) = cifar10.load_data()
         best_layer_count = self.get_optimal_layers_count(X_train,X_test,y_train,y_test)
         model = self.build_model(best_layer_count,X_train,np.unique(y_train).shape[0])
-        model.fit(x=X_train,y=y_train,epochs=10,batch_size=32,validation_data=(X_test,y_test),verbose=2)
+        model.fit(x=X_train,y=y_train,epochs=20,batch_size=32,validation_data=(X_test,y_test),verbose=2)
         loss, accuracy = model.evaluate(X_test,y_test)
         y_pred = np.argmax(model.predict(X_test),axis=-1)
         cm = confusion_matrix(y_test,y_pred)
@@ -124,5 +124,6 @@ class zadanie7_4:
         print(cm)
     
 if __name__ == "__main__":
+    tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
     task = zadanie7_4()
     task.learn_optimal_model()
