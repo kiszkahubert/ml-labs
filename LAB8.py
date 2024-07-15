@@ -207,7 +207,7 @@ class task:
         aec_output = decoder(encoder(encoder_input))
         gen_autoencoder = Model(inputs = encoder_input, outputs = aec_output)
         gen_autoencoder.compile(optimizer=Adam(0.0001),loss='MeanSquaredError')
-        gen_autoencoder.fit(x=X_train,y=X_train, validation_data=(X_test,X_test),batch_size=32,epochs=10)
+        gen_autoencoder.fit(x=X_train,y=X_train, validation_data=(X_test,X_test),batch_size=32,epochs=500)
         return gen_autoencoder
     
     def execute_model(self):
