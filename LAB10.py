@@ -59,7 +59,7 @@ def test(X_train):
     encoder = Model(inputs=input_encoder, outputs=output_encoder)
     decoder = Model(inputs=input_decoder, outputs=dec_tensor)
     autoencoder.compile(optimizer=Adam(learning_rate),loss='binary_crossentropy')
-    autoencoder.fit(x=X_train,y=X_train,epochs=125,batch_size=256)
+    autoencoder.fit(x=X_train,y=X_train,epochs=45,batch_size=256)
     save_dir = "./saved_models"
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -69,17 +69,40 @@ def test(X_train):
         json_file.write(model_json)
 
     autoencoder.save_weights(os.path.join(save_dir, "autoencoder_weights.h5"))
- 
-def load_model():
-    with open('./saved_models/autoencoder.json','r') as json_file:
+    encoder_json = encoder.to_json()
+    with open(os.path.join(save_dir, "encoder.json"), "w") as json_file:
+        json_file.write(encoder_json)
+
+    encoder.save_weights(os.path.join(save_dir, "encoder_weights.h5"))
+    decoder_json = decoder.to_json()
+    with open(os.path.join(save_dir, "decoder.json"), "w") as json_file:
+        json_file.write(decoder_json)
+
+    decoder.save_weights(os.path.join(save_dir, "decoder_weights.h5"))
+def load_model(path_json,path_weights):
+    with open(path_json,'r') as json_file:
         loaded_model_json = json_file.read()
     
     loaded_model = model_from_json(loaded_model_json)
-    loaded_model.load_weights('./saved_models/autoencoder_weights.h5')
+    loaded_model.load_weights(path_weights)
     return loaded_model
+
 
 if __name__ == '__main__':
     tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
-    (X_train,_), (_,_) = mnist.load_data()
+    (X_train,y_train), (X_test,y_test) = mnist.load_data()
     X_train = np.expand_dims(X_train, axis=-1) / 255.0
-    load_model()
+    X_test = np.expand_dims(X_test, axis=-1) / 255.0
+    y_train = pd.get_dummies(pd.Categorical(y_train)).values
+    y_test = pd.get_dummies(pd.Categorical(y_test)).values
+    autoencoder = load_model('./saved_models/autoencoder.json','./saved_models/autoencoder_weights.h5')
+    encoder = load_model('./saved_models/encoder.json','./saved_models/encoder_weights.h5')
+    decoder = load_model('./saved_models/decoder.json','./saved_models/decoder_weights.h5')
+
+    fig, ax = plt.subplots(1,1,figsize=(20,16))
+    for i in range(10):
+        digits = y_train == i
+        needed_imgs = X_train[digits,...]
+        preds = encoder.predict(needed_imgs)
+        ax.scatter(preds[:,0],preds[:,1])
+    
