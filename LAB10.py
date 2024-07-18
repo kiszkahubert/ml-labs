@@ -265,12 +265,27 @@ def add_salt_and_pepper_noise(images, salt_prob=0.1, pepper_prob=0.1):
 
 def zadanie10_4(X_train):
     encoder = load_model('./saved_models/encoder_4.json','./saved_models/encoder_4_weights.h5')
-    fig, ax = plt.subplots(1,1,figsize=(20,16))
-    for i in range(10):
-        digits = y_train == i
-        needed_imgs = X_train[digits,...]
-        preds = encoder.predict(needed_imgs)
-        ax.scatter(preds[:,0],preds[:,1])
+    fig,ax = plt.subplots(1,1,figsize=(20,16))
+    #TODO bo nic nie dziala
+
+def zadanie10_5(X_train):
+    decoder = load_model('./saved_models/decoder_4.json','./saved_models/decoder_4_weights.h5')
+    step = 1.2/15
+    fig, ax = plt.subplots(15,15,figsize=(20,16))
+    X_vals = np.arange(-0.6,0.6,step)
+    Y_vals = np.arange(-0.6,0.6,step)
+    for i, x in enumerate(X_vals):
+        for j, y in enumerate(Y_vals):
+            test_in = np.array([[x,y]])
+            output = decoder.predict(x=test_in.reshape((1,2)))
+            output = np.squeeze(output)
+            ax[j,i].imshow(output,cmap='jet')
+            ax[j,i].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+    #TODO BO TEZ NIE DZIALA NIC
+
 
 if __name__ == '__main__':
     tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
@@ -326,5 +341,4 @@ if __name__ == '__main__':
     # show_pictures(test_photos)
     # show_pictures(noisy_test_photos)
     # show_pictures(cleaned_images)
-
-zadanie10_4(X_train_scaled)
+    zadanie10_5(X_train_scaled)
