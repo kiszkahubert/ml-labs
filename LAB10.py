@@ -10,8 +10,7 @@ from keras.optimizers import Adam
 from keras import backend as K
 from matplotlib import pyplot as plt
 
-
-def test(X_train):
+def generate_data(X_train):
     act_func = "selu"
     aec_dim_num = 2
     encoder_layers = [
@@ -79,6 +78,7 @@ def test(X_train):
         json_file.write(decoder_json)
 
     decoder.save_weights(os.path.join(save_dir, "decoder_weights.h5"))
+
 def load_model(path_json,path_weights):
     with open(path_json,'r') as json_file:
         loaded_model_json = json_file.read()
@@ -87,22 +87,68 @@ def load_model(path_json,path_weights):
     loaded_model.load_weights(path_weights)
     return loaded_model
 
+def autoencoder_conv(X_train):
+    act_func = 'selu'
+    encoder_layers = [GaussianNoise(1),
+                      Conv2D(32,(3,3),padding='same',activation=act_func),
+                      MaxPool2D(2,2),
+                      Conv2D(64,(3,3),padding='same',activation=act_func),
+                      MaxPool2D(2,2),
+                      Conv2D(128,(3,3),padding='same', activation=act_func)]
+    
+    decoder_layers = [UpSampling2D((2,2)),
+                      Conv2D(32,(3,3),padding='same',activation=act_func),
+                      UpSampling2D((2,2)),
+                      Conv2D(32,(3,3),padding='same',activation=act_func),
+                      Conv2D(1,(3,3),padding='same',activation='sigmoid')]
+    
+    learning_rate = 0.0001
+    tensor = autoencoder_input = Input(X_train.shape[1:])
+    for layer in encoder_layers+decoder_layers:
+        tensor = layer(tensor)
+    
+    autoencoder = Model(inputs=autoencoder_input,outputs=tensor)
+    autoencoder.compile(optimizer=Adam(learning_rate),loss='binary_crossentropy')
+    autoencoder.fit(x=X_train,y=X_train,epochs=50,batch_size=256)
+    save_dir = "./saved_models"
+    model_json = autoencoder.to_json()
+    with open(os.path.join(save_dir, "autoencoder_noise.json"), "w") as json_file:
+        json_file.write(model_json)
+
+    autoencoder.save_weights(os.path.join(save_dir, "autoencoder_noise_weights.h5"))
 
 if __name__ == '__main__':
     tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
     (X_train,y_train), (X_test,y_test) = mnist.load_data()
-    X_train = np.expand_dims(X_train, axis=-1) / 255.0
+    X_train = np.expand_dims(X_train, axis=-1) # /255.0
+    X_train_scaled = (X_train/255).copy()
     X_test = np.expand_dims(X_test, axis=-1) / 255.0
-    y_train = pd.get_dummies(pd.Categorical(y_train)).values
-    y_test = pd.get_dummies(pd.Categorical(y_test)).values
+    y_train = pd.Categorical(y_train)
+    y_test = pd.Categorical(y_test)
     autoencoder = load_model('./saved_models/autoencoder.json','./saved_models/autoencoder_weights.h5')
     encoder = load_model('./saved_models/encoder.json','./saved_models/encoder_weights.h5')
     decoder = load_model('./saved_models/decoder.json','./saved_models/decoder_weights.h5')
 
-    fig, ax = plt.subplots(1,1,figsize=(20,16))
-    for i in range(10):
-        digits = y_train == i
-        needed_imgs = X_train[digits,...]
-        preds = encoder.predict(needed_imgs)
-        ax.scatter(preds[:,0],preds[:,1])
+    # fig, ax = plt.subplots(1,1,figsize=(20,16))
+    # for i in range(10):
+    #     digits = y_train == i
+    #     needed_imgs = X_train[digits,...]
+    #     preds = encoder.predict(needed_imgs)
+    #     ax.scatter(preds[:,0],preds[:,1])
     
+    # num = 15
+    # limit = 0.6
+    # step = limit*2/num
+    # fig, ax = plt.subplots(num,num,figsize=(20,16))
+    # X_vals = np.arange(-limit,limit,step)
+    # Y_vals = np.arange(-limit,limit,step)
+    # for i, x in enumerate(X_vals):
+    #     for j, y in enumerate(Y_vals):
+    #         test_in = np.array([[x,y]])
+    #         output = decoder.predict(x=test_in)
+    #         output = np.squeeze(output)
+    #         ax[-j-1,i].imshow(output, cmap='jet')
+    #         ax[-j-1,i].axis('off')
+    # plt.show()
+
+    autoencoder = load_model('./saved_models/autencoder_noise.json','./saved_models/autoencoder_noise_weights.h5')
