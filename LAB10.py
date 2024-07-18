@@ -117,6 +117,23 @@ def autoencoder_conv(X_train):
 
     autoencoder.save_weights(os.path.join(save_dir, "autoencoder_noise_weights.h5"))
 
+def show_pictures(arrs):
+    arr_cnt = arrs.shape[0]
+    fig, ax = plt.subplots(1,arr_cnt,figsize=(5*arr_cnt,arr_cnt))
+    for axis, pic in zip(ax,arrs):
+        axis.imshow(pic.squeeze(), cmap='gray')
+    plt.show()
+
+def add_salt_and_pepper_noise(images, salt_prob=0.1, pepper_prob=0.1):
+    noisy_images = images.copy()
+    num_salt = np.ceil(salt_prob * images.size)
+    num_pepper = np.ceil(pepper_prob * images.size)
+    salt_coords = [np.random.randint(0, i, int(num_salt)) for i in images.shape]
+    noisy_images[tuple(salt_coords)] = 1
+    pepper_coords = [np.random.randint(0, i, int(num_pepper)) for i in images.shape]
+    noisy_images[tuple(pepper_coords)] = 0
+    return noisy_images
+
 if __name__ == '__main__':
     tf.config.experimental.set_memory_growth(tf.config.experimental.list_physical_devices('GPU')[0], True)
     (X_train,y_train), (X_test,y_test) = mnist.load_data()
@@ -151,4 +168,11 @@ if __name__ == '__main__':
     #         ax[-j-1,i].axis('off')
     # plt.show()
 
-    autoencoder = load_model('./saved_models/autencoder_noise.json','./saved_models/autoencoder_noise_weights.h5')
+    autoencoder = load_model('./saved_models/autoencoder_noise.json','./saved_models/autoencoder_noise_weights.h5')
+    test_photos = X_test[10:20,...].copy()
+    mask = np.random.randn(*test_photos.shape)
+    noisy_test_photos = add_salt_and_pepper_noise(test_photos)
+    cleaned_images = autoencoder.predict(noisy_test_photos)*255
+    show_pictures(test_photos)
+    show_pictures(noisy_test_photos)
+    show_pictures(cleaned_images)
