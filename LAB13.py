@@ -75,6 +75,55 @@ def zadanie2():
     diff_true = np.sign(diff_true)
     print(confusion_matrix(diff_true,diff_pred))
     print(accuracy_score(diff_true,diff_pred))
+    return model
+
+
+def zadanie3():
+    selected_data = return_selected()
+    X,y = make_dataset(selected_data,100,-3)
+    train_size = int(X.shape[0]*0.8)
+    X_train,y_train = X[:train_size,...],y[:train_size,...]
+    X_test,y_test = X[train_size:,...],y[train_size:,...]
+    X_train, X_test = normalize_array(X_train,X_test,0)
+    y_train, y_test = normalize_array(y_train,y_test,0)
+    input_tensor = Input(X_train.shape[1:])
+    output_tensor = TimeDistributed(Dense(32,activation='selu'))(input_tensor)
+    output_tensor = LSTM(1,activation='selu', return_sequences=True)(output_tensor)
+    output_tensor = LSTM(1,activation='selu', return_sequences=False)(output_tensor)
+    output_tensor = Dense(1,activation='sigmoid')(output_tensor)
+    model = Model(inputs=input_tensor, outputs=output_tensor)
+    model.compile(optimizer='RMSProp',loss='mean_squared_error', metrics=['accuracy'])
+    model.fit(X_train,y_train,batch_size=32,epochs=1,validation_data=(X_test,y_test))
+    y_pred = model.predict(X_test)
+    diff_pred = np.diff(y_pred.squeeze())
+    diff_true = np.diff(y_test)
+    diff_pred = np.sign(diff_pred)
+    diff_true = np.sign(diff_true)
+    print(confusion_matrix(diff_true,diff_pred))
+    print(accuracy_score(diff_true,diff_pred))
+    
+#not working
+def forecast(model,X,day_cnt):
+    forecasted = []
+    current_input = X.copy()
+    for _ in range(day_cnt):
+        prediction = model.predict(current_input[np.newaxis,...])
+        forecasted.append(prediction[0,0])
+        next_input = np.roll(current_input,-1,axis=0)
+        next_input[-1,:] = prediction
+        current_input = next_input
+    
+    return np.array(forecasted)
 
 if __name__ == '__main__':
-    zadanie2()
+    model = zadanie2()
+    selected_data = return_selected()
+    X,y = make_dataset(selected_data,100,-3)
+    X,_ = normalize_array(X,X,0)
+    X_test_last = X[-1,...]
+    y_test_future = y[-10:]
+    forecasted = forecast(model,X[-1,...],10)
+    plt.plot(range(10),y_test_future, label='true')
+    plt.plot(range(10),forecasted,label='forecasted')
+    plt.legend()
+    plt.show()
